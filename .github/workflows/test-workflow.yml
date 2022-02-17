@@ -1,0 +1,78 @@
+name: Testing Github Actions Workflow
+
+on: [pull_request]
+
+jobs:
+  test:
+    name: Testing Github Actions Job
+    env:
+      # CHOSEN_ENVIRONMENT: ${{ jobs.test.environment.url }}
+      FOO: ${{ secrets.FOO }}
+      BAR: ${{ secrets.BAR }}
+    environment: env1
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: check_env_vars
+        run: |
+          echo "env.FOO == ${{ env.FOO }}"
+          echo "env.BAR == ${{ env.BAR }}"
+          # echo "env.CHOSEN_ENVIRONMENT == ${{ env.CHOSEN_ENVIRONMENT }}"
+
+      - name: this_should_run
+        id: run
+        if: ${{ env.FOO == 'foo1' }}
+        run: echo "env.FOO == 'foo1' -> ${{ env.FOO }} -> ${{ env.FOO == 'foo1' }} -> you will see this"
+
+      - name: test_conditional
+        run: |
+            echo "Result is ${{ (steps.run.outcome == 'success' && 'hola') || 'chao' }}" \
+            && echo "Previous step  ${{ steps.run.outcome }}"
+
+      - name: this_should_not_run
+        if: ${{ env.FOO == 'foo2' }}
+        run: echo "env.FOO == 'foo2' -> ${{ env.FOO }} -> ${{ env.FOO == 'foo2' }} -> you will not see this"
+
+      - name: this_fails
+        continue-on-error: true
+        id: fails
+        run: exit 1
+
+      - name: test_conditional_2
+        run: echo "Result is ${{ (steps.fails.outcome == 'success' && 'hola') || 'chao' }}"
+
+      - name: fail_job
+        if: ${{ steps.fails.outcome != 'success' }}
+        run: echo "Previous step failed" && exit 1
+
+      # - name: Dump GitHub context
+      #   env:
+      #     GITHUB_CONTEXT: ${{ toJson(github) }}
+      #   run: echo "$GITHUB_CONTEXT"
+
+      # - name: Dump job context
+      #   env:
+      #     JOB_CONTEXT: ${{ toJson(job) }}
+      #   run: echo "$JOB_CONTEXT"
+
+      - name: Dump steps context
+        env:
+          STEPS_CONTEXT: ${{ toJson(steps) }}
+        run: echo "$STEPS_CONTEXT"
+
+      # - name: Dump runner context
+      #   env:
+      #     RUNNER_CONTEXT: ${{ toJson(runner) }}
+      #   run: echo "$RUNNER_CONTEXT"
+
+      # - name: Dump strategy context
+      #   env:
+      #     STRATEGY_CONTEXT: ${{ toJson(strategy) }}
+      #   run: echo "$STRATEGY_CONTEXT"
+
+      # - name: Dump matrix context
+      #   env:
+      #     MATRIX_CONTEXT: ${{ toJson(matrix) }}
+      #   run: echo "$MATRIX_CONTEXT"
+
