@@ -1,0 +1,60 @@
+name: Testing Github Actions Workflow
+
+on: [pull_request]
+
+jobs:
+  test:
+    name: Testing Github Actions Job
+    env:
+      CHOSEN_ENVIRONMENT: {{ jobs.test.environment.url }}
+      FOO: ${{ secrets.FOO }}
+      BAR: ${{ secrets.BAR }}
+    environment: env1
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Check env vars
+        run: |
+          echo "env.FOO == ${{ env.FOO }}"
+          echo "env.BAR == ${{ env.BAR }}"
+          echo "env.CHOSEN_ENVIRONMENT == ${{ env.CHOSEN_ENVIRONMENT }}"
+
+      - name: This should run
+        if: ${{ env.FOO == 'foo1' }}
+        run: echo "env.FOO == 'foo1' -> ${{ env.FOO }} -> ${{ env.FOO == 'foo1' }} -> you will see this"
+
+      - name: This should not run
+        if: ${{ env.FOO == 'foo2' }}
+        run: echo "env.FOO == 'foo2' -> ${{ env.FOO }} -> ${{ env.FOO == 'foo2' }} -> you will not see this"
+
+      - name: Dump GitHub context
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: echo "$GITHUB_CONTEXT"
+
+      - name: Dump job context
+        env:
+          JOB_CONTEXT: ${{ toJson(job) }}
+        run: echo "$JOB_CONTEXT"
+
+      - name: Dump steps context
+        env:
+          STEPS_CONTEXT: ${{ toJson(steps) }}
+        run: echo "$STEPS_CONTEXT"
+
+      - name: Dump runner context
+        env:
+          RUNNER_CONTEXT: ${{ toJson(runner) }}
+        run: echo "$RUNNER_CONTEXT"
+
+      - name: Dump strategy context
+        env:
+          STRATEGY_CONTEXT: ${{ toJson(strategy) }}
+        run: echo "$STRATEGY_CONTEXT"
+
+      - name: Dump matrix context
+        env:
+          MATRIX_CONTEXT: ${{ toJson(matrix) }}
+        run: echo "$MATRIX_CONTEXT"
+
